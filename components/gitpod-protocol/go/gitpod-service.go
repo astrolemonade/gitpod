@@ -2233,6 +2233,7 @@ type ProjectSettings struct {
 	UsePersistentVolumeClaim bool                      `json:"usePersistentVolumeClaim,omitempty"`
 	WorkspaceClasses         *WorkspaceClassesSettings `json:"workspaceClasses,omitempty"`
 	PrebuildSettings         *PrebuildSettings         `json:"prebuilds,omitempty"`
+	AllowedWorkspaceClasses  *[]string                 `json:"allowedWorkspaceClasses,omitempty"`
 }
 type PrebuildSettings struct {
 	Enable                *bool   `json:"enable,omitempty"`

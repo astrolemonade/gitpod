@@ -20,6 +20,11 @@ export interface ProjectSettings {
 
     // preferred workspace classes
     workspaceClasses?: WorkspaceClasses;
+
+    /**
+     * Controls workspace class restriction for this project. Empty array to allow all kind of workspace classes
+     */
+    allowedWorkspaceClasses?: string[];
 }
 export namespace PrebuildSettings {
     export type BranchStrategy = "default-branch" | "all-branches" | "matched-branches";

@@ -16,7 +16,10 @@
             "workspaceClass": "dev"
         },
         "restrictionSettings": {
-            "allowedWorkspaceClasses": []
+            "allowedWorkspaceClasses": [
+                "cls-1",
+                "cls-2"
+            ]
         }
     },
     "err": ""

@@ -132,6 +132,7 @@ import { ScmService } from "./scm/scm-service";
 import { ContextService } from "./workspace/context-service";
 import { RateLimitter } from "./rate-limitter";
 import { AnalyticsController } from "./analytics-controller";
+import { LazyOrganizationService } from "./orgs/lazy-organization-service";
 
 export const productionContainerModule = new ContainerModule(
     (bind, unbind, isBound, rebind, unbindAsync, onActivation, onDeactivation) => {
@@ -393,6 +394,17 @@ export const productionContainerModule = new ContainerModule(
                     await ctx.container.get(WorkspaceService).validateImageRef({}, user, imageRef);
                 },
             )
+            .inSingletonScope();
+
+        bind<LazyOrganizationService>(LazyOrganizationService)
+            .toDynamicValue((ctx) => {
+                // lazy load to avoid circular dependency
+                return {
+                    getSettings(userId, orgId) {
+                        return ctx.container.get(OrganizationService).getSettings(userId, orgId);
+                    },
+                };
+            })
             .inSingletonScope();
 
         bind(RateLimitter).toSelf().inSingletonScope();

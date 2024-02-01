@@ -125,12 +125,12 @@ export class WorkspaceService {
             this.config.workspaceClasses,
         );
         const settings = await this.orgService.getSettings(userId, organizationId);
+        const allAllowedClsInInstallation = await this.installationService.getInstallationWorkspaceClasses(userId);
+        const checkHasOtherOptions = (allowedCls: string[]) =>
+            allowedCls.filter((e) => allAllowedClsInInstallation.findIndex((cls) => cls.id === e) !== -1).length > 0;
         if (settings.allowedWorkspaceClasses && settings.allowedWorkspaceClasses.length > 0) {
             if (!settings.allowedWorkspaceClasses.includes(workspaceClass)) {
-                const hasOtherOptions = await this.orgService.hasAllowedWorkspaceClassesInInstallation(
-                    userId,
-                    organizationId,
-                );
+                const hasOtherOptions = checkHasOtherOptions(settings.allowedWorkspaceClasses);
                 if (!hasOtherOptions) {
                     throw new ApplicationError(
                         ErrorCodes.PRECONDITION_FAILED,
@@ -140,6 +140,21 @@ export class WorkspaceService {
                 throw new ApplicationError(
                     ErrorCodes.PRECONDITION_FAILED,
                     "Selected workspace class is not allowed in current organization.",
+                );
+            }
+        }
+        if (project?.settings?.allowedWorkspaceClasses && project.settings.allowedWorkspaceClasses.length > 0) {
+            if (!project.settings.allowedWorkspaceClasses.includes(workspaceClass)) {
+                const hasOtherOptions = checkHasOtherOptions(project.settings.allowedWorkspaceClasses);
+                if (!hasOtherOptions) {
+                    throw new ApplicationError(
+                        ErrorCodes.PRECONDITION_FAILED,
+                        "No allowed workspace classes available for current configuration. Please contact an admin to update configuration settings.",
+                    );
+                }
+                throw new ApplicationError(
+                    ErrorCodes.PRECONDITION_FAILED,
+                    "Selected workspace class is not allowed in current configuration.",
                 );
             }
         }

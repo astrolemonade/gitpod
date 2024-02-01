@@ -39,6 +39,7 @@ message Project {
 message ProjectSettings {
   PrebuildSettings prebuild = 1;
   WorkspaceSettings workspace = 2;
+  RestrictionSettings restriction = 3;
 }
 
 message PrebuildSettings {
@@ -62,6 +63,10 @@ message WorkspaceSettings {
 message WorkspaceClassSettings {
   string regular = 1;
   string prebuild = 2;
+}
+
+message RestrictionSettings {
+  repeated string allowed_workspace_classes = 1;
 }
 
 service ProjectsService {

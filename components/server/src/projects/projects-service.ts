@@ -32,6 +32,7 @@ import { daysBefore, isDateSmaller } from "@gitpod/gitpod-protocol/lib/util/time
 import deepmerge from "deepmerge";
 import { ScmService } from "../scm/scm-service";
 import { runWithSubjectId } from "../util/request-context";
+import { LazyOrganizationService } from "../orgs/lazy-organization-service";
 
 const MAX_PROJECT_NAME_LENGTH = 100;
 
@@ -44,6 +45,8 @@ export class ProjectsService {
         @inject(IAnalyticsWriter) private readonly analytics: IAnalyticsWriter,
         @inject(Authorizer) private readonly auth: Authorizer,
         @inject(ScmService) private readonly scmService: ScmService,
+
+        @inject(LazyOrganizationService) private readonly organizationService: LazyOrganizationService,
     ) {}
 
     async getProject(userId: string, projectId: string): Promise<Project> {
@@ -400,15 +403,46 @@ export class ProjectsService {
             throw new ApplicationError(ErrorCodes.NOT_FOUND, `Project ${partialProject.id} not found.`);
         }
 
-        if (!partialProject.settings?.prebuilds && !partialProject.settings?.workspaceClasses) {
-            // No nested settings update, just update the project partially
-            return this.projectDB.updateProject(partialProject);
+        // TODO(sd): Change to code below looks reasonable?
+        // TODO(sd): Need to verify edge cases (no setting field on existingProject / not update settings)
+
+        // Merge settings so that clients don't need to pass previous value all the time
+        // (not update setting field if undefined)
+        if (partialProject.settings) {
+            partialProject.settings = deepmerge(existingProject.settings ?? {}, partialProject.settings);
+            await this.checkProjectSettings(user.id, existingProject, partialProject.settings);
         }
+        await this.handleEnablePrebuild(user, partialProject);
+        return this.projectDB.updateProject(partialProject);
+    }
 
-        const update = deepmerge(existingProject, partialProject);
-
-        await this.handleEnablePrebuild(user, update);
-        return this.projectDB.updateProject(update);
+    private async checkProjectSettings(
+        userId: string,
+        project: Pick<Project, "teamId">,
+        settings?: PartialProject["settings"],
+    ) {
+        if (!settings) {
+            return;
+        }
+        if (settings.allowedWorkspaceClasses) {
+            const classList = settings.allowedWorkspaceClasses.filter((cls) => !!cls) as string[];
+            if (classList.length > 0) {
+                // Check if all classes are allowed in the organization
+                const orgSettings = await this.organizationService.getSettings(userId, project.teamId);
+                if (orgSettings.allowedWorkspaceClasses && orgSettings.allowedWorkspaceClasses.length > 0) {
+                    const notAllowedList = classList.filter(
+                        (cls) => !orgSettings.allowedWorkspaceClasses!.includes(cls),
+                    );
+                    if (notAllowedList.length > 0) {
+                        throw new ApplicationError(
+                            ErrorCodes.BAD_REQUEST,
+                            `Workspace classes: ${notAllowedList.join(", ")} not allowed in organization`,
+                        );
+                    }
+                }
+            }
+        }
+        // place for editors
     }
 
     private async handleEnablePrebuild(user: User, partialProject: PartialProject): Promise<void> {

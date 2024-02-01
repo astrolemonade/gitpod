@@ -85,6 +85,11 @@ export class Configuration extends Message<Configuration> {
    */
   workspaceSettings?: WorkspaceSettings;
 
+  /**
+   * @generated from field: gitpod.v1.RestrictionSettings restriction_settings = 8;
+   */
+  restrictionSettings?: RestrictionSettings;
+
   constructor(data?: PartialMessage<Configuration>) {
     super();
     proto3.util.initPartial(data, this);
@@ -100,6 +105,7 @@ export class Configuration extends Message<Configuration> {
     { no: 5, name: "creation_time", kind: "message", T: Timestamp },
     { no: 6, name: "prebuild_settings", kind: "message", T: PrebuildSettings },
     { no: 7, name: "workspace_settings", kind: "message", T: WorkspaceSettings },
+    { no: 8, name: "restriction_settings", kind: "message", T: RestrictionSettings },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): Configuration {
@@ -214,6 +220,43 @@ export class WorkspaceSettings extends Message<WorkspaceSettings> {
 
   static equals(a: WorkspaceSettings | PlainMessage<WorkspaceSettings> | undefined, b: WorkspaceSettings | PlainMessage<WorkspaceSettings> | undefined): boolean {
     return proto3.util.equals(WorkspaceSettings, a, b);
+  }
+}
+
+/**
+ * @generated from message gitpod.v1.RestrictionSettings
+ */
+export class RestrictionSettings extends Message<RestrictionSettings> {
+  /**
+   * @generated from field: repeated string allowed_workspace_classes = 1;
+   */
+  allowedWorkspaceClasses: string[] = [];
+
+  constructor(data?: PartialMessage<RestrictionSettings>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "gitpod.v1.RestrictionSettings";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "allowed_workspace_classes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RestrictionSettings {
+    return new RestrictionSettings().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RestrictionSettings {
+    return new RestrictionSettings().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RestrictionSettings {
+    return new RestrictionSettings().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: RestrictionSettings | PlainMessage<RestrictionSettings> | undefined, b: RestrictionSettings | PlainMessage<RestrictionSettings> | undefined): boolean {
+    return proto3.util.equals(RestrictionSettings, a, b);
   }
 }
 
@@ -509,6 +552,11 @@ export class UpdateConfigurationRequest extends Message<UpdateConfigurationReque
    */
   workspaceSettings?: UpdateConfigurationRequest_WorkspaceSettings;
 
+  /**
+   * @generated from field: optional gitpod.v1.UpdateConfigurationRequest.RestrictionSettings restriction_settings = 5;
+   */
+  restrictionSettings?: UpdateConfigurationRequest_RestrictionSettings;
+
   constructor(data?: PartialMessage<UpdateConfigurationRequest>) {
     super();
     proto3.util.initPartial(data, this);
@@ -521,6 +569,7 @@ export class UpdateConfigurationRequest extends Message<UpdateConfigurationReque
     { no: 2, name: "name", kind: "scalar", T: 9 /* ScalarType.STRING */, opt: true },
     { no: 3, name: "prebuild_settings", kind: "message", T: UpdateConfigurationRequest_PrebuildSettings, opt: true },
     { no: 4, name: "workspace_settings", kind: "message", T: UpdateConfigurationRequest_WorkspaceSettings, opt: true },
+    { no: 5, name: "restriction_settings", kind: "message", T: UpdateConfigurationRequest_RestrictionSettings, opt: true },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateConfigurationRequest {
@@ -635,6 +684,55 @@ export class UpdateConfigurationRequest_WorkspaceSettings extends Message<Update
 
   static equals(a: UpdateConfigurationRequest_WorkspaceSettings | PlainMessage<UpdateConfigurationRequest_WorkspaceSettings> | undefined, b: UpdateConfigurationRequest_WorkspaceSettings | PlainMessage<UpdateConfigurationRequest_WorkspaceSettings> | undefined): boolean {
     return proto3.util.equals(UpdateConfigurationRequest_WorkspaceSettings, a, b);
+  }
+}
+
+/**
+ * @generated from message gitpod.v1.UpdateConfigurationRequest.RestrictionSettings
+ */
+export class UpdateConfigurationRequest_RestrictionSettings extends Message<UpdateConfigurationRequest_RestrictionSettings> {
+  /**
+   * allowed_workspace_classes specifies the workspace classes that are allowed to use this configuration.
+   * If empty, all workspace classes are allowed.
+   * Only update if update_allowed_workspace_classes is true.
+   *
+   * @generated from field: repeated string allowed_workspace_classes = 1;
+   */
+  allowedWorkspaceClasses: string[] = [];
+
+  /**
+   * update_allowed_workspace_classes specifies whether allowed_workspace_classes should be updated.
+   *
+   * @generated from field: optional bool update_allowed_workspace_classes = 2;
+   */
+  updateAllowedWorkspaceClasses?: boolean;
+
+  constructor(data?: PartialMessage<UpdateConfigurationRequest_RestrictionSettings>) {
+    super();
+    proto3.util.initPartial(data, this);
+  }
+
+  static readonly runtime: typeof proto3 = proto3;
+  static readonly typeName = "gitpod.v1.UpdateConfigurationRequest.RestrictionSettings";
+  static readonly fields: FieldList = proto3.util.newFieldList(() => [
+    { no: 1, name: "allowed_workspace_classes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 2, name: "update_allowed_workspace_classes", kind: "scalar", T: 8 /* ScalarType.BOOL */, opt: true },
+  ]);
+
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): UpdateConfigurationRequest_RestrictionSettings {
+    return new UpdateConfigurationRequest_RestrictionSettings().fromBinary(bytes, options);
+  }
+
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): UpdateConfigurationRequest_RestrictionSettings {
+    return new UpdateConfigurationRequest_RestrictionSettings().fromJson(jsonValue, options);
+  }
+
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): UpdateConfigurationRequest_RestrictionSettings {
+    return new UpdateConfigurationRequest_RestrictionSettings().fromJsonString(jsonString, options);
+  }
+
+  static equals(a: UpdateConfigurationRequest_RestrictionSettings | PlainMessage<UpdateConfigurationRequest_RestrictionSettings> | undefined, b: UpdateConfigurationRequest_RestrictionSettings | PlainMessage<UpdateConfigurationRequest_RestrictionSettings> | undefined): boolean {
+    return proto3.util.equals(UpdateConfigurationRequest_RestrictionSettings, a, b);
   }
 }
 
