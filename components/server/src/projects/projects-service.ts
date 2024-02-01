@@ -33,6 +33,7 @@ import deepmerge from "deepmerge";
 import { ScmService } from "../scm/scm-service";
 import { runWithSubjectId } from "../util/request-context";
 import { LazyOrganizationService } from "../orgs/lazy-organization-service";
+import { InstallationService } from "../auth/installation-service";
 
 const MAX_PROJECT_NAME_LENGTH = 100;
 
@@ -47,6 +48,7 @@ export class ProjectsService {
         @inject(ScmService) private readonly scmService: ScmService,
 
         @inject(LazyOrganizationService) private readonly organizationService: LazyOrganizationService,
+        @inject(InstallationService) private readonly installationService: InstallationService,
     ) {}
 
     async getProject(userId: string, projectId: string): Promise<Project> {
@@ -409,7 +411,12 @@ export class ProjectsService {
         // Merge settings so that clients don't need to pass previous value all the time
         // (not update setting field if undefined)
         if (partialProject.settings) {
-            partialProject.settings = deepmerge(existingProject.settings ?? {}, partialProject.settings);
+            const toBeMerged: ProjectSettings = existingProject.settings ?? {};
+            if (partialProject.settings.allowedWorkspaceClasses) {
+                // deepmerge will try append array, so once data is defined, ignore previous value
+                toBeMerged.allowedWorkspaceClasses = undefined;
+            }
+            partialProject.settings = deepmerge(toBeMerged, partialProject.settings);
             await this.checkProjectSettings(user.id, existingProject, partialProject.settings);
         }
         await this.handleEnablePrebuild(user, partialProject);
@@ -426,21 +433,33 @@ export class ProjectsService {
         }
         if (settings.allowedWorkspaceClasses) {
             const classList = settings.allowedWorkspaceClasses.filter((cls) => !!cls) as string[];
+            const checkClassesAllowed = (
+                clsList: string[],
+                allClasses: string[],
+                errorScope: "organization" | "installation",
+            ) => {
+                const notAllowedList = clsList.filter((cls) => !allClasses.includes(cls));
+                if (notAllowedList.length > 0) {
+                    throw new ApplicationError(
+                        ErrorCodes.BAD_REQUEST,
+                        `Workspace classes: ${notAllowedList.join(", ")} not allowed in ${errorScope}`,
+                    );
+                }
+            };
             if (classList.length > 0) {
-                // Check if all classes are allowed in the organization
                 const orgSettings = await this.organizationService.getSettings(userId, project.teamId);
                 if (orgSettings.allowedWorkspaceClasses && orgSettings.allowedWorkspaceClasses.length > 0) {
-                    const notAllowedList = classList.filter(
-                        (cls) => !orgSettings.allowedWorkspaceClasses!.includes(cls),
+                    checkClassesAllowed(classList, orgSettings.allowedWorkspaceClasses, "organization");
+                } else {
+                    const allClasses = await this.installationService.getInstallationWorkspaceClasses(userId);
+                    checkClassesAllowed(
+                        classList,
+                        allClasses.map((e) => e.id),
+                        "installation",
                     );
-                    if (notAllowedList.length > 0) {
-                        throw new ApplicationError(
-                            ErrorCodes.BAD_REQUEST,
-                            `Workspace classes: ${notAllowedList.join(", ")} not allowed in organization`,
-                        );
-                    }
                 }
             }
+            settings.allowedWorkspaceClasses = classList;
         }
         // place for editors
     }
