@@ -107,6 +107,11 @@ export namespace Project {
         return !(typeof project.settings?.prebuilds === "undefined");
     }
 
+    // Export a fuction about allowedWorkspaceClasses on projects level
+    export function getAllowedWorkspaceClasses(project: Project) {
+        return project.settings?.allowedWorkspaceClasses ?? [];
+    }
+
     export interface Overview {
         branches: BranchDetails[];
         isConsideredInactive?: boolean;

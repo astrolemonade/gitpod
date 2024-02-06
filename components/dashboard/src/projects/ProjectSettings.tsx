@@ -28,6 +28,11 @@ import { PartialMessage } from "@bufbuild/protobuf";
 import { RepositoryUnauthorizedError } from "@gitpod/public-api/lib/gitpod/v1/error_pb";
 import { openAuthorizeWindow } from "../provider-utils";
 import { LinkButton } from "../components/LinkButton";
+import { useWorkspaceClasses } from "../data/workspaces/workspace-classes-query";
+import { LoadingButton } from "@podkit/buttons/LoadingButton";
+import { SwitchInputField } from "@podkit/switch/Switch";
+import { useIsOwner } from "../data/organizations/members-query";
+import { useOrgSettingsQuery } from "../data/organizations/org-settings-query";
 
 const MAX_PROJECT_NAME_LENGTH = 100;
 
@@ -47,6 +52,7 @@ export function ProjectSettingsPage(props: { project?: Project; children?: React
 export default function ProjectSettingsView() {
     const { setProject } = useContext(ProjectContext);
     const { project } = useCurrentProject();
+    const isOwner = useIsOwner();
     const [showRemoveModal, setShowRemoveModal] = useState(false);
     const [isDirty, setIsDirty] = useState(false);
     const [projectName, internalSetProjectName] = useState(project?.name || "");
@@ -264,6 +270,8 @@ export default function ProjectSettingsView() {
         [project, updateProjectSettings],
     );
 
+    const { data: orgSettings } = useOrgSettingsQuery();
+
     const onProjectRemoved = useCallback(() => {
         history.push("/projects");
     }, [history]);
@@ -414,6 +422,11 @@ export default function ProjectSettingsView() {
                 </div>
             </div>
             {/* TODO(sd): Add dashboard UX changes */}
+
+            <div>
+                <Heading2 className="mt-12">Available Workspace Classes</Heading2>
+                <WorkspaceClassOptions disabled={!isOwner} settings={orgSettings} />
+            </div>
             <div>
                 <Heading2 className="mt-12">Remove Project</Heading2>
                 <Subheading className="pb-4 max-w-md">
@@ -434,3 +447,93 @@ export default function ProjectSettingsView() {
         </ProjectSettingsPage>
     );
 }
+
+interface WorkspaceClassOptionsProps {
+    settings: ProjectSettings | undefined;
+    disabled: boolean;
+}
+const WorkspaceClassOptions = (props: WorkspaceClassOptionsProps) => {
+    const [validateError, setValidateError] = useState("");
+    const [selectedValue, setSelectedValue] = useState(props.settings?.allowedWorkspaceClasses ?? []);
+    const [isChanged, setIsChanged] = useState(false);
+    // const updateTeamSettings = useUpdateOrgSettingsMutation();
+    const { data: classes, isError, isLoading } = useWorkspaceClasses();
+
+    // const { toast } = useToast();
+    // const handleUpdateTeamSettings = useCallback(
+    //     async (classes: string[]) => {
+    //         await updateTeamSettings.mutateAsync(
+    //             {
+    //                 ...props.settings,
+    //                 allowedWorkspaceClasses: classes,
+    //             },
+    //             {
+    //                 onSuccess: () => {
+    //                     toast({ message: "Available workspace classes updated." });
+    //                 },
+    //             },
+    //         );
+    //     },
+    //     [updateTeamSettings, props.settings, toast],
+    // );
+
+    const noClassesSelected = useMemo(() => {
+        return (props.settings?.allowedWorkspaceClasses?.length ?? 0) === 0;
+    }, [props.settings?.allowedWorkspaceClasses]);
+
+    if (isError || !classes) {
+        return <div>Something went wrong</div>;
+    }
+
+    // if (isLoading) {
+    //     return <LoadingState />;
+    // }
+
+    return (
+        <div className="space-y-4">
+            <div>
+                {classes.map((wsClass) => (
+                    <SwitchInputField
+                        className="mt-2"
+                        key={wsClass.id}
+                        id={wsClass.id}
+                        label={wsClass.displayName}
+                        description={wsClass.description}
+                        checked={(!isChanged && noClassesSelected) || selectedValue.includes(wsClass.id)}
+                        onCheckedChange={(checked) => {
+                            const previousValue =
+                                !isChanged && noClassesSelected ? classes.map((e) => e.id) : selectedValue;
+                            setIsChanged(true);
+                            const newVal = (
+                                checked ? [...previousValue, wsClass.id] : previousValue.filter((e) => e !== wsClass.id)
+                            ).filter((id) => classes.find((cls) => cls.id === id));
+                            setValidateError(
+                                newVal.length === 0 ? "At least one workspace class has to be selected." : "",
+                            );
+                            setSelectedValue(newVal);
+                        }}
+                        disabled={props.disabled || isLoading}
+                    />
+                ))}
+            </div>
+
+            <div className="flex gap-2 items-center">
+                {!props.disabled && (
+                    <LoadingButton
+                        disabled={props.disabled || !isChanged || validateError.length > 0}
+                        loading={isLoading}
+                        // onClick={() => {
+                        //     handleUpdateTeamSettings(selectedValue);
+                        // }}
+                    >
+                        Save
+                    </LoadingButton>
+                )}
+                {validateError.length > 0 && <span className="text-red-600 dark:text-red-400">{validateError}</span>}
+                {/* {handleUpdateTeamSettings.isError && handleUpdateTeamSettings.error.message.length > 0 && (
+                    <span className="text-red-600 dark:text-red-400">{handleUpdateTeamSettings.error.message}</span>
+                )} */}
+            </div>
+        </div>
+    );
+};
