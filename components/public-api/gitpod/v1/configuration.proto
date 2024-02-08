@@ -16,7 +16,6 @@ message Configuration {
   google.protobuf.Timestamp creation_time = 5;
   PrebuildSettings prebuild_settings = 6;
   WorkspaceSettings workspace_settings = 7;
-  RestrictionSettings restriction_settings = 8;
 }
 
 message PrebuildSettings {
@@ -36,10 +35,11 @@ enum BranchMatchingStrategy {
 
 message WorkspaceSettings {
   string workspace_class = 1;
+  RestrictedWorkspaceClasses restricted_workspace_classes = 2;
 }
 
-message RestrictionSettings {
-  repeated string allowed_workspace_classes = 1;
+message RestrictedWorkspaceClasses {
+  repeated string restricted_workspace_classes = 1;
 }
 
 service ConfigurationService {
@@ -83,7 +83,8 @@ message ListConfigurationsRequest {
   PaginationRequest pagination = 3;
   // Configurations can be sorted by "name" OR "creationTime"
   repeated Sort sort = 4;
-  // Will filter for configurations that have prebuilds enabled/disabled, or both if not set.
+  // Will filter for configurations that have prebuilds enabled/disabled, or
+  // both if not set.
   optional bool prebuilds_enabled = 5;
 }
 
@@ -100,23 +101,10 @@ message UpdateConfigurationRequest {
     optional int32 prebuild_interval = 4;
     optional string workspace_class = 5;
   }
-  message WorkspaceSettings {
-    optional string workspace_class = 1;
-  }
-  message RestrictionSettings {
-    // allowed_workspace_classes specifies the workspace classes that are allowed to use this configuration.
-    // If empty, all workspace classes are allowed.
-    // Only update if update_allowed_workspace_classes is true.
-    repeated string allowed_workspace_classes = 1;
-
-    // update_allowed_workspace_classes specifies whether allowed_workspace_classes should be updated.
-    optional bool update_allowed_workspace_classes = 2;
-  }
   string configuration_id = 1;
   optional string name = 2;
   optional PrebuildSettings prebuild_settings = 3;
   optional WorkspaceSettings workspace_settings = 4;
-  optional RestrictionSettings restriction_settings = 5;
 }
 
 message UpdateConfigurationResponse {

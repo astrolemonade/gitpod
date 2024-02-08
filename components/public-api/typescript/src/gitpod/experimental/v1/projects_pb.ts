@@ -27,7 +27,8 @@ export class Project extends Message<Project> {
 
   /**
    * Team ID is the Team this Project belongs to.
-   * team_id will be empty if the Project belongs to a User, in which case user_id will be set.
+   * team_id will be empty if the Project belongs to a User, in which case
+   * user_id will be set.
    *
    * @generated from field: string team_id = 2;
    */
@@ -112,9 +113,9 @@ export class ProjectSettings extends Message<ProjectSettings> {
   workspace?: WorkspaceSettings;
 
   /**
-   * @generated from field: gitpod.experimental.v1.RestrictionSettings restriction = 3;
+   * @generated from field: gitpod.experimental.v1.RestrictedWorkspaceClasses restricted_workspace_classes = 3;
    */
-  restriction?: RestrictionSettings;
+  restrictedWorkspaceClasses?: RestrictedWorkspaceClasses;
 
   constructor(data?: PartialMessage<ProjectSettings>) {
     super();
@@ -126,7 +127,7 @@ export class ProjectSettings extends Message<ProjectSettings> {
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
     { no: 1, name: "prebuild", kind: "message", T: PrebuildSettings },
     { no: 2, name: "workspace", kind: "message", T: WorkspaceSettings },
-    { no: 3, name: "restriction", kind: "message", T: RestrictionSettings },
+    { no: 3, name: "restricted_workspace_classes", kind: "message", T: RestrictedWorkspaceClasses },
   ]);
 
   static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): ProjectSettings {
@@ -294,39 +295,39 @@ export class WorkspaceClassSettings extends Message<WorkspaceClassSettings> {
 }
 
 /**
- * @generated from message gitpod.experimental.v1.RestrictionSettings
+ * @generated from message gitpod.experimental.v1.RestrictedWorkspaceClasses
  */
-export class RestrictionSettings extends Message<RestrictionSettings> {
+export class RestrictedWorkspaceClasses extends Message<RestrictedWorkspaceClasses> {
   /**
-   * @generated from field: repeated string allowed_workspace_classes = 1;
+   * @generated from field: repeated string restricted_workspace_classes = 1;
    */
-  allowedWorkspaceClasses: string[] = [];
+  restrictedWorkspaceClasses: string[] = [];
 
-  constructor(data?: PartialMessage<RestrictionSettings>) {
+  constructor(data?: PartialMessage<RestrictedWorkspaceClasses>) {
     super();
     proto3.util.initPartial(data, this);
   }
 
   static readonly runtime: typeof proto3 = proto3;
-  static readonly typeName = "gitpod.experimental.v1.RestrictionSettings";
+  static readonly typeName = "gitpod.experimental.v1.RestrictedWorkspaceClasses";
   static readonly fields: FieldList = proto3.util.newFieldList(() => [
-    { no: 1, name: "allowed_workspace_classes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
+    { no: 1, name: "restricted_workspace_classes", kind: "scalar", T: 9 /* ScalarType.STRING */, repeated: true },
   ]);
 
-  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RestrictionSettings {
-    return new RestrictionSettings().fromBinary(bytes, options);
+  static fromBinary(bytes: Uint8Array, options?: Partial<BinaryReadOptions>): RestrictedWorkspaceClasses {
+    return new RestrictedWorkspaceClasses().fromBinary(bytes, options);
   }
 
-  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RestrictionSettings {
-    return new RestrictionSettings().fromJson(jsonValue, options);
+  static fromJson(jsonValue: JsonValue, options?: Partial<JsonReadOptions>): RestrictedWorkspaceClasses {
+    return new RestrictedWorkspaceClasses().fromJson(jsonValue, options);
   }
 
-  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RestrictionSettings {
-    return new RestrictionSettings().fromJsonString(jsonString, options);
+  static fromJsonString(jsonString: string, options?: Partial<JsonReadOptions>): RestrictedWorkspaceClasses {
+    return new RestrictedWorkspaceClasses().fromJsonString(jsonString, options);
   }
 
-  static equals(a: RestrictionSettings | PlainMessage<RestrictionSettings> | undefined, b: RestrictionSettings | PlainMessage<RestrictionSettings> | undefined): boolean {
-    return proto3.util.equals(RestrictionSettings, a, b);
+  static equals(a: RestrictedWorkspaceClasses | PlainMessage<RestrictedWorkspaceClasses> | undefined, b: RestrictedWorkspaceClasses | PlainMessage<RestrictedWorkspaceClasses> | undefined): boolean {
+    return proto3.util.equals(RestrictedWorkspaceClasses, a, b);
   }
 }
 

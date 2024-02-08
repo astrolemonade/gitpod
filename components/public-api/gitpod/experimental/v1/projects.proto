@@ -13,7 +13,8 @@ message Project {
   string id = 1;
 
   // Team ID is the Team this Project belongs to.
-  // team_id will be empty if the Project belongs to a User, in which case user_id will be set.
+  // team_id will be empty if the Project belongs to a User, in which case
+  // user_id will be set.
   string team_id = 2;
 
   reserved 3;
@@ -39,7 +40,7 @@ message Project {
 message ProjectSettings {
   PrebuildSettings prebuild = 1;
   WorkspaceSettings workspace = 2;
-  RestrictionSettings restriction = 3;
+  RestrictedWorkspaceClasses restricted_workspace_classes = 3;
 }
 
 message PrebuildSettings {
@@ -65,8 +66,8 @@ message WorkspaceClassSettings {
   string prebuild = 2;
 }
 
-message RestrictionSettings {
-  repeated string allowed_workspace_classes = 1;
+message RestrictedWorkspaceClasses {
+  repeated string restricted_workspace_classes = 1;
 }
 
 service ProjectsService {

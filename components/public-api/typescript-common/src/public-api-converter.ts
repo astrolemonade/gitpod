@@ -41,7 +41,6 @@ import {
     BranchMatchingStrategy,
     Configuration,
     PrebuildSettings,
-    RestrictionSettings,
     WorkspaceSettings,
 } from "@gitpod/public-api/lib/gitpod/v1/configuration_pb";
 import {
@@ -113,7 +112,6 @@ import {
     WithPrebuild,
     WorkspaceContext,
     WorkspaceInfo,
-    WorkspaceClasses,
     UserEnvVarValue,
     ProjectEnvVar,
     PrebuiltWorkspaceState,
@@ -908,18 +906,18 @@ export class PublicAPIConverter {
         }
     }
 
-    fromWorkspaceSettings(workspaceClass?: string): WorkspaceClasses {
-        const result: WorkspaceClasses = {};
-        if (workspaceClass) {
-            result.regular = workspaceClass;
+    fromWorkspaceSettings(settings?: DeepPartial<WorkspaceSettings>) {
+        const result: Partial<Pick<ProjectSettings, "workspaceClasses" | "restrictedWorkspaceClasses">> = {};
+        if (settings?.workspaceClass) {
+            result.workspaceClasses = {
+                regular: settings.workspaceClass,
+            };
         }
-        return result;
-    }
 
-    fromConfigurationRestrictionSettings(settings?: DeepPartial<RestrictionSettings>) {
-        const result: Partial<Pick<ProjectSettings, "allowedWorkspaceClasses">> = {};
-        if (settings?.allowedWorkspaceClasses) {
-            result.allowedWorkspaceClasses = settings.allowedWorkspaceClasses.filter((e) => !!e) as string[];
+        if (settings?.restrictedWorkspaceClasses) {
+            result.restrictedWorkspaceClasses = settings.restrictedWorkspaceClasses.restrictedWorkspaceClasses?.filter(
+                (e) => !!e,
+            ) as string[];
         }
         return result;
     }
@@ -960,8 +958,11 @@ export class PublicAPIConverter {
 
     fromPartialConfiguration(configuration: PartialConfiguration): PartialProject {
         const prebuilds = this.fromPartialPrebuildSettings(configuration.prebuildSettings);
-        const workspaceClasses = this.fromWorkspaceSettings(configuration.workspaceSettings?.workspaceClass);
-        const restrictions = this.fromConfigurationRestrictionSettings(configuration.restrictionSettings);
+        const { workspaceClasses, restrictedWorkspaceClasses: restrictions } = this.fromWorkspaceSettings(
+            configuration.workspaceSettings,
+        );
+
+        // const restrictions = this.fromConfigurationRestrictionSettings(configuration.restrictionSettings);
         const result: PartialProject = {
             id: configuration.id,
         };
@@ -970,16 +971,19 @@ export class PublicAPIConverter {
             result.name = configuration.name;
         }
 
-        if (Object.keys(prebuilds).length > 0 || Object.keys(workspaceClasses).length > 0) {
+        if (
+            (prebuilds && Object.keys(prebuilds).length > 0) ||
+            (workspaceClasses && Object.keys(workspaceClasses).length > 0)
+        ) {
             result.settings = {
                 prebuilds,
                 workspaceClasses,
             };
         }
-        if (Object.keys(restrictions).length > 0) {
+        if (restrictions && Object.keys(restrictions).length > 0) {
             result.settings = {
                 ...result.settings,
-                allowedWorkspaceClasses: restrictions.allowedWorkspaceClasses,
+                restrictedWorkspaceClasses: restrictions as string[],
             };
         }
 
@@ -1003,7 +1007,6 @@ export class PublicAPIConverter {
         result.creationTime = Timestamp.fromDate(new Date(project.creationTime));
         result.workspaceSettings = this.toWorkspaceSettings(project.settings?.workspaceClasses?.regular);
         result.prebuildSettings = this.toPrebuildSettings(project.settings?.prebuilds);
-        result.restrictionSettings = this.toConfigurationRestrictionSettings(project.settings);
         return result;
     }
 
@@ -1017,12 +1020,6 @@ export class PublicAPIConverter {
             result.workspaceClass = prebuilds.workspaceClass ?? "";
         }
         return result;
-    }
-
-    toConfigurationRestrictionSettings(settings?: ProjectSettings): RestrictionSettings {
-        return new RestrictionSettings({
-            allowedWorkspaceClasses: settings?.allowedWorkspaceClasses ?? [],
-        });
     }
 
     toBranchMatchingStrategy(branchStrategy?: PrebuildSettingsProtocol.BranchStrategy): BranchMatchingStrategy {

@@ -412,9 +412,9 @@ export class ProjectsService {
         // (not update setting field if undefined)
         if (partialProject.settings) {
             const toBeMerged: ProjectSettings = existingProject.settings ?? {};
-            if (partialProject.settings.allowedWorkspaceClasses) {
+            if (partialProject.settings.restrictedWorkspaceClasses) {
                 // deepmerge will try append array, so once data is defined, ignore previous value
-                toBeMerged.allowedWorkspaceClasses = undefined;
+                toBeMerged.restrictedWorkspaceClasses = undefined;
             }
             partialProject.settings = deepmerge(toBeMerged, partialProject.settings);
             await this.checkProjectSettings(user.id, existingProject, partialProject.settings);
@@ -431,8 +431,8 @@ export class ProjectsService {
         if (!settings) {
             return;
         }
-        if (settings.allowedWorkspaceClasses) {
-            const classList = settings.allowedWorkspaceClasses.filter((cls) => !!cls) as string[];
+        if (settings.restrictedWorkspaceClasses) {
+            const classList = settings.restrictedWorkspaceClasses?.filter((cls) => !!cls) as string[];
             const checkClassesAllowed = (
                 clsList: string[],
                 allClasses: string[],
@@ -459,7 +459,7 @@ export class ProjectsService {
                     );
                 }
             }
-            settings.allowedWorkspaceClasses = classList;
+            settings.restrictedWorkspaceClasses = classList;
         }
         // place for editors
     }

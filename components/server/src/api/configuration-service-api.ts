@@ -190,20 +190,17 @@ export class ConfigurationServiceAPI implements ServiceImpl<typeof Configuration
             update.workspaceSettings = buildUpdateObject<DeepPartial<WorkspaceSettings>>(req.workspaceSettings);
         }
 
-        if (req.restrictionSettings) {
-            if (req.restrictionSettings.updateAllowedWorkspaceClasses) {
-                if (!req.restrictionSettings.allowedWorkspaceClasses) {
-                    throw new ApplicationError(
-                        ErrorCodes.BAD_REQUEST,
-                        "allowedWorkspaceClasses is required with updateAllowedWorkspaceClasses true",
-                    );
-                } else {
-                    update.restrictionSettings = {
-                        allowedWorkspaceClasses: req.restrictionSettings.allowedWorkspaceClasses,
-                    };
-                }
+        if (req.workspaceSettings) {
+            if (!req.workspaceSettings?.restrictedWorkspaceClasses) {
+                throw new ApplicationError(
+                    ErrorCodes.BAD_REQUEST,
+                    "allowedWorkspaceClasses is required with updateAllowedWorkspaceClasses true",
+                );
+            } else {
+                update.workspaceSettings = {
+                    restrictedWorkspaceClasses: req.workspaceSettings?.restrictedWorkspaceClasses,
+                };
             }
-            // place for restriction editors
         }
 
         if (Object.keys(update).length <= 1) {

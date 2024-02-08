@@ -143,9 +143,9 @@ export class WorkspaceService {
                 );
             }
         }
-        if (project?.settings?.allowedWorkspaceClasses && project.settings.allowedWorkspaceClasses.length > 0) {
-            if (!project.settings.allowedWorkspaceClasses.includes(workspaceClass)) {
-                const hasOtherOptions = checkHasOtherOptions(project.settings.allowedWorkspaceClasses);
+        if (project?.settings?.restrictedWorkspaceClasses && project.settings.restrictedWorkspaceClasses.length > 0) {
+            if (!project.settings.restrictedWorkspaceClasses.includes(workspaceClass)) {
+                const hasOtherOptions = checkHasOtherOptions(project.settings.restrictedWorkspaceClasses);
                 if (!hasOtherOptions) {
                     throw new ApplicationError(
                         ErrorCodes.PRECONDITION_FAILED,
